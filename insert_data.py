@@ -51,33 +51,32 @@ def push_log(db, log):
             if l['name'] in event_cnt:
                 event_cnt[l['name']] += 1
             else:
-                empty_col = False
-                i = 0
-                for e in cuda_event:
-                    if e is None:
-                        cuda_event[i] = l['name']
-                        empty_col = True
-                        break
-                    i += 1
-                if not empty_col:
-                    if len(cmd) > 37:
-                        cmd = cmd[:-1] + ";"
-                        print(cmd)
-                        print('------')
-                        db.exec(cmd)
-                        cmd = f"INSERT INTO grafana.CudaEvent VALUES "
-                    add_col(db)
-                    cuda_event.append(l['name'])
                 event_cnt[l["name"]] = 1
+            empty_col = False
+            i = 0
+            for e in cuda_event:
+                if e is None:
+                    cuda_event[i] = l['name']
+                    empty_col = True
+                    break
+                i += 1
+            if not empty_col:
+                if len(cmd) > 37:
+                    cmd = cmd[:-1] + ";"
+                    # print(cmd)
+                    # print('------')
+                    db.exec(cmd)
+                    cmd = f"INSERT INTO grafana.CudaEvent VALUES "
+                add_col(db)
+                cuda_event.append(l['name'])
         elif l['op'] == 'end':
             if l['name'] in event_cnt:
                 if event_cnt[l["name"]] == 0:
                     raise ValueError(f"in line {line_idx + 1}: event {l['name']} ended more than starting")
                 event_cnt[l["name"]] -= 1
-            if l["name"] in event_cnt and event_cnt[l["name"]] == 0:
-                for i, e in enumerate(cuda_event):
+                for i, e in enumerate(cuda_event[::-1]):
                     if e == l["name"]:
-                        cuda_event[i] = None
+                        cuda_event[len(cuda_event)- 1 - i] = None
                         break
             if l["name"] not in event_cnt:
                 raise ValueError(f"in line {line_idx + 1}: event {l['name']} ended without starting")
@@ -94,9 +93,11 @@ def push_log(db, log):
         cmd += tmp_cmd
     if len(cmd) > 37:
         cmd = cmd[:-1] + ";"
-        print(cmd)
-        print("------")
+        # print(cmd)
+        # print("------")
         db.exec(cmd)
+    # print(cuda_event)
+    # print(event_cnt)
 
 def main(args):
     log = reader(args.log_file)

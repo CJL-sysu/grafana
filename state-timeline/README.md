@@ -6,6 +6,8 @@ grafana 示范链接 http://192.168.134.104:3000/public-dashboards/d0999cf577c14
 
 ## 运行示范
 
+建议在运行前，使用`init_database.sql`清空数据并初始化数据库
+
 ```bash
 python insert_data.py --ip ${db-ip} --port ${db_port} --user ${db-username} --pwd ${db-password} --table ${db-table} --log_file ${path-to-log-file}
 ```

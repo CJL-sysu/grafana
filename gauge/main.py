@@ -12,10 +12,10 @@ def get_mem_percent():
     return psutil.virtual_memory().percent
 
 def get_mem_total():
-    return psutil.virtual_memory().total
+    return psutil.virtual_memory().total/(1024*1024)
 
 def get_mem_used():
-    return psutil.virtual_memory().used
+    return psutil.virtual_memory().used/(1024*1024)
 
 def get_gpu():
     """
@@ -25,7 +25,7 @@ def get_gpu():
     if len(GPUs) == 0:
         return 0, 0
     else:
-        return GPUs[0].load, GPUs[0].memoryUtil, GPUs[0].memoryUsed, GPUs[0].memoryTotal, GPUs[0].temperature
+        return GPUs[0].load, GPUs[0].memoryUtil, GPUs[0].memoryUsed/(1024*1024), GPUs[0].memoryTotal/(1024*1024), GPUs[0].temperature
     
 def main(args):
     db = database(

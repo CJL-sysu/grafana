@@ -34,6 +34,22 @@ def get_disk_io_rate():
     last_time = current_time
     return read_rate, write_rate
 
+net_io_start = psutil.net_io_counters()
+last_time = time()
+def get_network_traffic():
+    global net_io_start, last_time
+    net_io_end = psutil.net_io_counters()
+    current_time = time()
+    send_bytes = net_io_end.bytes_sent - net_io_start.bytes_sent
+    recv_bytes = net_io_end.bytes_recv - net_io_start.bytes_recv
+    
+    send_rate = send_bytes / (current_time - last_time)
+    recv_rate = recv_bytes / (current_time - last_time)
+    
+    net_io_start = net_io_end
+    last_time = current_time
+    return send_rate, recv_rate
+
 def get_gpu():
     """
     Returns: gpu load, gpu memory percentage, gpu memory used, gpu memory total, gpu temperature
@@ -68,7 +84,11 @@ def main(args):
         sleep(args.flush)
         read_rate, write_rate = get_disk_io_rate()
         db.exec(
-            f"""INSERT INTO {args.database}.diskio (time, read_rate, write_rate) VALUES (NOW(), {read_rate / 1024}, {write_rate / 1024});"""
+            f"""INSERT INTO {args.database}.diskio (time, read_rate, write_rate) VALUES (NOW(), {read_rate / 1024/1024}, {write_rate / 1024/1024});"""
+        )
+        send_rate, recv_rate = get_network_traffic()
+        db.exec(
+            f"""INSERT INTO {args.database}.netio (time, send_rate, recv_rate) VALUES (NOW(), {send_rate / 1024/1024}, {recv_rate / 1024/1024});"""
         )
 
 
